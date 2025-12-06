@@ -1,30 +1,17 @@
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 from time import sleep
 from PIL import Image
 import numpy as np
 import json
 import argparse
+import pdb
 
 parser = argparse.ArgumentParser(description="Opis")
 parser.add_argument("input", type=str, help="Obraz")
 
 args = parser.parse_args()
 
-print("Obraz:", args.input)
-
-# Obróbka obrazu 
-
-# ---- 1. Wczytanie PNG ----
-img = Image.open(args.input).convert("RGB")
-
-# ---- 2. Zamiana na NumPy array ----
-arr = np.array(img)
-#print(arr)
-
-binary_array = []
-
-lines_quantity = 0
-pixels_quantity = 0
+print("Użyty obraz: ", args.input)
 
 # brakuje 2 rzeczy: 
 # 1 - usuwanie zbędnych zer jeżeli w następnej linijce jest mniej pixeli i głowiaca zamiast dojechać do końca i wrócić, powinna od razu zejść do następnej lini.
@@ -36,57 +23,91 @@ print(' L = głowica jedzie w lewo')
 print(' K = koniec pliku')
 
 
-for line in arr:
-    lines_quantity+=1
-    empty_line_watcher = 0
-    pixels_quantity_in_line = 0
-    linia = [] #lista do tymczasowego zapisu dla pixeli w lini
+def picture_to_array(image):
+    binary_array = []
+    pixels_quantity = 0
+    lines_quantity = 0
+    arr = np.array(image)
 
-    for pixel in line:
-        pixels_quantity+=1
-        pixels_quantity_in_line+=1
-        suma = int(pixel[0]) + int(pixel[1]) + int(pixel[2])
-        if suma > 500:
-            linia.append(0)
-        else:
-            linia.append(1)
-            empty_line_watcher += 1 
-
-
-    if empty_line_watcher == 0: # sprawdzamy czy całą linia jest pusta. Jeżeli tak to oznaczamy jako 'N'
-        for i in range(pixels_quantity_in_line):
-            linia.pop()
-        linia.append("N")
-        lines_quantity-=1
-    else:
-        if lines_quantity % 2 == 0 or lines_quantity == 0: # sprawdzamy czy linia jest parzysta czy nie. jeżeli jest to po jej skończeniu zmienia się kierunek na prawy. Domyślnie urządzenie zaczyna jechać w lewo.
-            for mark in linia:
-                binary_array.append(mark)
-                print(mark, end='')
-            binary_array.append("R")
-        else:
-            linia.reverse()
-            for mark in linia:
-                binary_array.append(mark)
-                print(mark, end='')
-            binary_array.append("L")
-    print('')
-
-
-# Usuwamy ostatni element
-
-try: 
-    binary_array.pop()
-except IndexError as e:
-    #print(binary_array)
-    print(e)
-
-# Oznaczamy zakończenie pliku
-binary_array.append("K")
+    for line in arr:
+        lines_quantity+=1
+        pixels_quantity_in_line = 0
+        linia = [] #lista do tymczasowego zapisu dla pixeli w lini
     
-print("lines = ", lines_quantity)
-print("pixels = ", pixels_quantity)
-print(binary_array)
+        for pixel in line:
+            pixels_quantity+=1
+            pixels_quantity_in_line+=1
+            suma = int(pixel[0]) + int(pixel[1]) + int(pixel[2])
+            if suma > 500:
+                linia.append(0)
+            else:
+                linia.append(1)
+        binary_array.append(linia)
+    print('ilość lini = ', len(binary_array))
+
+    return binary_array
+
+def print_2D_array(array):
+    for line in array:
+        for item in line:
+            if item == 0:
+                print('•', end = '')
+            else:
+                print('■', end = '')
+        print('')
+
+def prepare_instruction(binary_array):
+    marks_quantity = 0
+    instruction = []
+
+    kierunek = False # w lewo to ujemny czyli *False*, a w prawo to dodatni, czyli *True*
+    #pdb.set_trace()
+    for i, line in enumerate(binary_array): # sprawdzamy czy całą linia jest pusta. Jeżeli tak to oznaczamy jako 'N' = Next, Następna
+        try:
+            suma_lini = sum(line) 
+            if suma_lini == 0:
+                instruction.append("N")
+            else:
+                if kierunek == True:
+                    instruction.append("R")
+                elif kierunek == False:
+                    instruction.append("L")
+                    line.reverse()
+                for mark in line:
+                    instruction.append(mark)
+                kierunek = not kierunek
+        except:
+            print("EXCEPTION!!!")
+    
+    try: 
+       instruction.pop() # Usuwamy zbedne dane z końca
+    except IndexError as e:
+        pass
+    instruction.append("K") # znak końca pliku
+    return instruction
+
+def remove_unnecessary_pixels(instruction):
+    flag = True
+    while flag:
+        quantity = 0
+        indices = [i for i, item in enumerate(instruction) if item in ('R', 'L')]
+        for index in indices:
+            if instruction[index-1] == 0 and instruction[index+1] == 0:
+                instruction.pop(index-1)
+                instruction.pop(index)
+                quantity = quantity + 1
+        if quantity == 0:
+            flag = False 
+    print(instruction)
+        # Oznaczamy zakończenie pliku
+
+# ---- Tworzenie obrazu ----
+
+img = Image.open(args.input).convert("RGB")
+binary_2D_image = picture_to_array(img)
+print_2D_array(binary_2D_image)
+instruction = prepare_instruction(binary_2D_image)
+remove_unnecessary_pixels(instruction)
 
 # ---- 3. Rozpoczęcie druk ----
 
