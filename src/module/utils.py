@@ -131,9 +131,10 @@ def empty_step(): # wyłącza laser i szybko omija ten punkt
 
 def active_step():
     step_arm()
-    sleep(0.05)
+    sleep(time_wait_n_active_pixel)
 
 def first_pixel():
     step_arm()
     laser_on()
-    sleep(0.2)
+    sleep(time_wait_1_active_pixel)
+

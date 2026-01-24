@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import configparser
 
 def make_instruction(path2image):
     img = Image.open(path2image).convert("RGB")
