@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 from time import sleep
 import argparse
-#from module.instruction import make_instruction as make
+from module.instruction import make_instruction as make
 from module.utils import *
 
 # ==================================  ARRANGE  ==================================
@@ -12,16 +12,26 @@ default_position()
 
 instruction = []
 try:
+    print("Parsing Opis")
     parser = argparse.ArgumentParser(description="Opis")
+    print("Parsing Obraz")
     parser.add_argument("input", type=str, help="Obraz")
+    print("Parseing Args")
     args = parser.parse_args()
+    print("Image path")
     image_path = args.input
-    print("Użyty obraz: ",image_path)
-    instruction = make(image_path)
 except Exception as e:
-    print('SOMETHING IS NO YES')
+    print('problem to get image path')
     print(e)
 
+    print("Użyty obraz: ",image_path)
+    print("Making Image:")
+
+try:
+    instruction = make(image_path)
+except Exception as e:
+    print("Problem to get instruction")
+    print(e)
 
 for mark in instruction:
     match mark:

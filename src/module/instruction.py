@@ -45,13 +45,21 @@ def print_2D_array(array):
         print('')
 
 def prepare_instruction(binary_array):
+    print("1. Oznaczenie pustych lini i prawo lewo.")
     instruction = set_dir(binary_array)
+    print("2. Dodanie znaku końca pracy")
     instruction.append("K") # znak końca pliku
+    print("3. Usunięcie niepotrzebnych pixeli")
     instruction = remove_unnecessary_pixels(instruction)
+    print("4. dodanie wszedzie znacznika następnej linii")
     instruction = add_next_line_mark(instruction)
+    print("5. Usuwanie zer pomiedzy pustymi liniami")
+    print(remove_0_between_empty_lines(instruction))
     instruction = remove_0_between_empty_lines(instruction)
+    print("6. Usuniecie zbędnej końcówki przed znakiem końca pracy")
     while instruction[-2] == 0 or instruction[-2] == 'N':
         instruction.pop(-2)
+    print("8. Dodanie znaku dluzszego dzialania przy starcie linii")
     for i, mark in enumerate(instruction):
         if i == 0 or mark == 'K':
             pass
@@ -90,11 +98,13 @@ def remove_0_between_empty_lines(instruction):
     while NN > 0:
         NN = 0
         N_after_N_list = find_multiple_n_starts(instruction)
+        print(N_after_N_list)
         for i in N_after_N_list:
             if instruction[i[0]-1] == 0 and instruction[i[0]+i[1]+1] == 0:
                 instruction.pop(i[0]+i[1]+1)
                 instruction.pop(i[0]-1)
                 NN = NN + 1
+                print(NN)
     return instruction
 
 def remove_unnecessary_pixels(instruction):
@@ -103,6 +113,7 @@ def remove_unnecessary_pixels(instruction):
         quantity = 0
         indices = [i for i, item in enumerate(instruction) if item in ('R', 'L')]
         indices.reverse()
+        dlugosc = len(indices)
         for index in indices:
             if instruction[index-1] == 0 and instruction[index+1] == 0:
                 instruction.pop(index+1)

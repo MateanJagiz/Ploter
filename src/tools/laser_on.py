@@ -1,69 +1,7 @@
 import RPi.GPIO as GPIO
 from time import sleep
-
-    # ===== Ustawienia GPIO =====
-
-GPIO.cleanup()
-sleep(0.1)
+   # ======  LASER TTL ======
 GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
-    # ====== Krańcówki======
-
-limit_switch_ARM_begin  = 26
-limit_switch_ARM_end    = 6
-limit_switch_bed_begin  = 5
-limit_switch_bed_end    = 19
-
-GPIO.setup(limit_switch_ARM_begin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(limit_switch_ARM_end, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(limit_switch_bed_begin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(limit_switch_bed_end, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-def limit_switch_check():
-    for pin in [limit_switch_ARM_begin, limit_switch_ARM_end, limit_switch_bed_begin, limit_switch_bed_end]:
-        if GPIO.input(pin) == 0:
-            return True  
-    return False  
-
-    # ======  silnik stół (TROLLEY)  ======
-
-ENA_TRO = 7
-DIR_TRO = 8
-PUL_TRO = 24
-
-GPIO.setup(ENA_TRO, GPIO.OUT)
-GPIO.setup(DIR_TRO, GPIO.OUT)
-GPIO.setup(PUL_TRO, GPIO.OUT)
-
-def step_troll():
-    for i in range(1):
-        GPIO.output(PUL_TRO, GPIO.HIGH)
-        sleep(0.001)
-        GPIO.output(PUL_TRO, GPIO.LOW)
-        sleep(0.001)
-
-
-    # ======  silnik ramię (ARM)  ======
-
-PUL_ARM = 16
-DIR_ARM = 20
-ENA_ARM = 21
-
-GPIO.setup(ENA_ARM, GPIO.OUT)
-GPIO.setup(DIR_ARM, GPIO.OUT)
-GPIO.setup(PUL_ARM, GPIO.OUT)
-
-def step_arm():
-    for i in range(1):
-        GPIO.output(PUL_ARM, GPIO.HIGH)
-        sleep(0.01)
-        GPIO.output(PUL_ARM, GPIO.LOW)
-        sleep(0.01)
-
-
-    # ======  LASER TTL ======
-
 GPIO.setup(13, GPIO.OUT)
 
 def laser_off():
@@ -73,6 +11,13 @@ def laser_off():
 def laser_on():
     GPIO.output(13, GPIO.HIGH)
     print("===> LASER ON")
+
+def laser_on_50_proc():
+    while True:
+        laser_on()
+        sleep(0.0001)
+        laser_off()
+        sleep(0.0001)
 
 def safe_mode():
     GPIO.output(ENA_ARM, GPIO.HIGH)
@@ -145,3 +90,5 @@ def first_pixel():
     laser_on()
     sleep(0.2)
     step_arm()
+
+laser_on_50_proc()
