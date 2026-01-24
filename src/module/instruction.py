@@ -100,11 +100,14 @@ def remove_0_between_empty_lines(instruction):
         N_after_N_list = find_multiple_n_starts(instruction)
         print(N_after_N_list)
         for i in N_after_N_list:
-            if instruction[i[0]-1] == 0 and instruction[i[0]+i[1]+1] == 0:
-                instruction.pop(i[0]+i[1]+1)
-                instruction.pop(i[0]-1)
-                NN = NN + 1
-                print(NN)
+            try:
+                if instruction[i[0]-1] == 0 and instruction[i[0]+i[1]+1] == 0:
+                    instruction.pop(i[0]+i[1]+1)
+                    instruction.pop(i[0]-1)
+                    NN = NN + 1
+                    print(NN)
+            except Exception as e:
+                print(e)
     return instruction
 
 def remove_unnecessary_pixels(instruction):

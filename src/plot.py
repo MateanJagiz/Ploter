@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import json
 from time import sleep
 import argparse
 from module.instruction import make_instruction as make
@@ -12,26 +13,17 @@ default_position()
 
 instruction = []
 try:
-    print("Parsing Opis")
     parser = argparse.ArgumentParser(description="Opis")
-    print("Parsing Obraz")
-    parser.add_argument("input", type=str, help="Obraz")
-    print("Parseing Args")
+    parser.add_argument("input", type=str, help="Instrukcja")
     args = parser.parse_args()
-    print("Image path")
-    image_path = args.input
-except Exception as e:
-    print('problem to get image path')
-    print(e)
-
-    print("Użyty obraz: ",image_path)
-    print("Making Image:")
-
-try:
-    instruction = make(image_path)
+    instruction_path = args.input
+    with open(instruction_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 except Exception as e:
     print("Problem to get instruction")
     print(e)
+
+instruction = data["steps"]
 
 for mark in instruction:
     match mark:

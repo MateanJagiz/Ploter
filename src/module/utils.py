@@ -1,5 +1,16 @@
 import RPi.GPIO as GPIO
 from time import sleep
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')  
+
+time_step_arm = config.getfloat('device', 'time_step_arm')
+time_step_trollay = config.getfloat('device', 'time_step_trollay')
+time_wait_1_active_pixel = config.getfloat('device', 'time_wait_1_active_pixel')
+time_wait_n_active_pixel = config.getfloat('device', 'time_wait_n_active_pixel')
+trolley_steps_on_move = config.getint('device', 'trolley_steps_on_move')
+arm_steps_on_move = config.getint('device', 'arm_steps_on_move')
 
     # ===== Ustawienia GPIO =====
 
@@ -37,11 +48,12 @@ GPIO.setup(DIR_TRO, GPIO.OUT)
 GPIO.setup(PUL_TRO, GPIO.OUT)
 
 def step_troll():
-    for i in range(1):
+    for i in range(trolley_steps_on_move):
         GPIO.output(PUL_TRO, GPIO.HIGH)
-        sleep(0.001)
+        sleep(time_step_trollay)
         GPIO.output(PUL_TRO, GPIO.LOW)
-        sleep(0.001)
+        sleep(time_step_trollay)
+
 
 
     # ======  silnik ramię (ARM)  ======
@@ -55,11 +67,11 @@ GPIO.setup(DIR_ARM, GPIO.OUT)
 GPIO.setup(PUL_ARM, GPIO.OUT)
 
 def step_arm():
-    for i in range(1):
+    for i in range(arm_steps_on_move):
         GPIO.output(PUL_ARM, GPIO.HIGH)
-        sleep(0.01)
+        sleep(time_step_arm)
         GPIO.output(PUL_ARM, GPIO.LOW)
-        sleep(0.01)
+        sleep(time_step_arm)
 
 
     # ======  LASER TTL ======
@@ -83,65 +95,45 @@ def default_position():
     GPIO.output(ENA_TRO, GPIO.LOW)
     GPIO.output(DIR_TRO, GPIO.HIGH)
     while limit_switch_check() == False:
-        GPIO.output(PUL_TRO, GPIO.LOW)
-        sleep(0.0009)
-        GPIO.output(PUL_TRO, GPIO.HIGH)
-        sleep(0.0009)
+        step_troll()
     GPIO.output(DIR_TRO, GPIO.LOW)
-    for i in range(100):
-        GPIO.output(PUL_TRO, GPIO.LOW)
-        sleep(0.0009)
-        GPIO.output(PUL_TRO, GPIO.HIGH)
-        sleep(0.0009)
+    for i in range(50):
+        step_troll()
 
     GPIO.output(ENA_ARM, GPIO.LOW)
     GPIO.output(DIR_ARM, GPIO.LOW)
     while limit_switch_check() == False:
-        GPIO.output(PUL_ARM, GPIO.LOW)
-        sleep(0.0007)
-        GPIO.output(PUL_ARM, GPIO.HIGH)
-        sleep(0.0007)
+        step_arm()
     GPIO.output(DIR_ARM, GPIO.HIGH)
-    for i in range(100):
-        GPIO.output(PUL_ARM, GPIO.LOW)
-        sleep(0.0007)
-        GPIO.output(PUL_ARM, GPIO.HIGH)
-        sleep(0.0007)
+    for i in range(50):
+        step_arm()
 
 def new_line(): # silnik wózka robi jeden krok ruch postępujący (np. 2 kroki)
     GPIO.output(ENA_TRO, GPIO.LOW)
     GPIO.output(DIR_TRO, GPIO.LOW)
-    while limit_switch_check() == False:
-        for i in range(5):
-            GPIO.output(PUL_TRO, GPIO.LOW)
-            sleep(0.0009)
-            GPIO.output(PUL_TRO, GPIO.HIGH)
-            sleep(0.0009)
-        break
-    return True
+    if limit_switch_check() == False:
+        step_troll()
 
 def cd_left(): # silnik ramienia zmienia kierunek na lewo
     GPIO.output(DIR_ARM, GPIO.HIGH)
-    return True
 
 def cd_right(): # silnik ramienia zmienia kierunek na prawo
     GPIO.output(DIR_ARM, GPIO.LOW)
-    return True
 
 def end(): # powrót do pozycji defaultowej.
+    laser_off()
     default_position()
     safe_mode()
-    return True
 
 def empty_step(): # wyłącza laser i szybko omija ten punkt
     laser_off()
     step_arm()
 
 def active_step():
-    sleep(0.05)
     step_arm()
+    sleep(0.05)
 
 def first_pixel():
+    step_arm()
     laser_on()
     sleep(0.2)
-    step_arm()
