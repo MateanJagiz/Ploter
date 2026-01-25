@@ -92,6 +92,7 @@ def safe_mode():
     laser_off()
 
 def default_position():
+    laser_off()
     GPIO.output(ENA_TRO, GPIO.LOW)
     GPIO.output(DIR_TRO, GPIO.HIGH)
     while limit_switch_check() == False:
