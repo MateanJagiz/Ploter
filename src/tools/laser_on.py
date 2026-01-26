@@ -1,8 +1,18 @@
 import RPi.GPIO as GPIO
 from time import sleep
+
+ENA_ARM = -1
+DIR_ARM = -1
+PUL_ARM = -1
+
+ENA_TRO = -1
+DIR_TRO = -1
+PUL_TRO = -1
    # ======  LASER TTL ======
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(13, GPIO.OUT)
+
+
 
 def laser_off():
     GPIO.output(13, GPIO.LOW)

@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import sys
 import json
 from time import sleep
 import argparse
@@ -12,6 +13,7 @@ from module.utils import *
 default_position()
 
 instruction = []
+data = {}
 try:
     parser = argparse.ArgumentParser(description="Opis")
     parser.add_argument("input", type=str, help="Instrukcja")
