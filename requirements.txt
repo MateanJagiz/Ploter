@@ -1,4 +1,9 @@
 RPi.GPIO
 Flask
+Flask-SocketIO
+Pillow
 numpy
-pillow
+python-socketio
+python-engineio
+eventlet
+tqdm
