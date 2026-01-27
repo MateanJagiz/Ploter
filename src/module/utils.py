@@ -82,52 +82,51 @@ class Laser:
 
     def off(self):
         GPIO.output(self.laser_pin, GPIO.LOW)
-        print("===> LASER OFF")
 
     def on(self):
         #do pwm trzba uzyc pin pwm inaczej nie ma sensu
         GPIO.output(self.laser_pin, GPIO.HIGH)
-        print("===> LASER ON")
 
 
 class Ploter:
     def __init__(self) -> None:
         self.laser = Laser()
+        self.motor = Motor()
 
     def safe_mode(self):
-        GPIO.output(ENA_ARM, GPIO.HIGH)
-        GPIO.output(ENA_TRO, GPIO.HIGH)
+        GPIO.output(self.motor.ENA_ARM, GPIO.HIGH)
+        GPIO.output(self.motor.ENA_TRO, GPIO.HIGH)
         self.laser.off()
     
     def default_position(self):
         self.laser.off()
-        GPIO.output(ENA_TRO, GPIO.LOW)
-        GPIO.output(DIR_TRO, GPIO.HIGH)
-        while limit_switch_check() == False:
-            step_troll()
-        GPIO.output(DIR_TRO, GPIO.LOW)
+        GPIO.output(self.motor.ENA_TRO, GPIO.LOW)
+        GPIO.output(self.motor.DIR_TRO, GPIO.HIGH)
+        while self.motor.limit_switch_check() == False:
+            self.motor.step_troll()
+        GPIO.output(self.motor.DIR_TRO, GPIO.LOW)
         for i in range(50):
-            step_troll()
+            self.motor.step_troll()
     
-        GPIO.output(ENA_ARM, GPIO.LOW)
-        GPIO.output(DIR_ARM, GPIO.LOW)
-        while limit_switch_check() == False:
-            step_arm()
-        GPIO.output(DIR_ARM, GPIO.HIGH)
+        GPIO.output(self.motor.ENA_ARM, GPIO.LOW)
+        GPIO.output(self.motor.DIR_ARM, GPIO.LOW)
+        while self.motor.limit_switch_check() == False:
+            self.motor.step_arm()
+        GPIO.output(self.motor.DIR_ARM, GPIO.HIGH)
         for i in range(50):
-            step_arm()
+            self.motor.step_arm()
     
     def new_line(self): # silnik wózka robi jeden krok ruch postępujący (np. 2 kroki)
-        GPIO.output(ENA_TRO, GPIO.LOW)
-        GPIO.output(DIR_TRO, GPIO.LOW)
-        if limit_switch_check() == False:
-            step_troll()
+        GPIO.output(self.motor.ENA_TRO, GPIO.LOW)
+        GPIO.output(self.motor.DIR_TRO, GPIO.LOW)
+        if self.motor.limit_switch_check() == False:
+            self.motor.step_troll()
     
     def cd_left(self): # silnik ramienia zmienia kierunek na lewo
-        GPIO.output(DIR_ARM, GPIO.HIGH)
+        GPIO.output(self.motor.DIR_ARM, GPIO.HIGH)
     
     def cd_right(self): # silnik ramienia zmienia kierunek na prawo
-        GPIO.output(DIR_ARM, GPIO.LOW)
+        GPIO.output(self.motor.DIR_ARM, GPIO.LOW)
     
     def end(self): # powrót do pozycji defaultowej.
         self.laser.off()
@@ -136,14 +135,14 @@ class Ploter:
     
     def empty_step(self): # wyłącza laser i szybko omija ten punkt
         self.laser.off()
-        step_arm()
+        self.motor.step_arm()
     
     def active_step(self):
-        step_arm()
-        sleep(time_wait_n_active_pixel)
+        self.motor.step_arm()
+        sleep(self.motor.time_wait_n_active_pixel)
     
     def first_pixel(self):
-        step_arm()
+        self.motor.step_arm()
         self.laser.on()
-        sleep(time_wait_1_active_pixel)
+        sleep(self.motor.time_wait_1_active_pixel)
 

@@ -25,9 +25,9 @@ def laser_on():
 def laser_on_50_proc():
     while True:
         laser_on()
-        sleep(0.0001)
+        sleep(1)
         laser_off()
-        sleep(0.0001)
+        sleep(1)
 
 def safe_mode():
     GPIO.output(ENA_ARM, GPIO.HIGH)

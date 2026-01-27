@@ -1,16 +1,16 @@
 import RPi.GPIO as GPIO
 import sys
 import json
-from time import sleep
+import time
 import argparse
+from tqdm import tqdm
 from module.instruction import make_instruction as make
 from module.utils import *
 
 # ==================================  ARRANGE  ==================================
 
-# ==================================    ACT    ==================================
-
-default_position()
+ploter = Ploter()
+ploter.default_position()
 
 instruction = []
 data = {}
@@ -27,40 +27,51 @@ except Exception as e:
 
 instruction = data["steps"]
 
+pbar = tqdm(total=len(instruction), desc="Postęp")  # Szacunkowe total, dostosuj dynamicznie
+
+
+
+# ==================================    ACT    ==================================
+
 try:
     for mark in instruction:
         match mark:
             case 'N':
-                print('Nowa linia')
-                new_line()
+                #print('Nowa linia')
+                ploter.new_line()
             case 'L':
-                print('W lewo')
-                cd_left()
+                #print('W lewo')
+                ploter.cd_left()
             case 'R':
-                print('W prawo')
-                cd_right()
+                #print('W prawo')
+                ploter.cd_right()
             case 'K':
-                print('Koniec!')
-                end()
+                #print('Koniec!')
+                ploter.end()
             case 0:
-                print('Wyłącz laser, Szybko omiń')
-                empty_step()
+                #print('Wyłącz laser, Szybko omiń')
+                ploter.empty_step()
             case 1:
-                print('Utrzymaj laser, przytrzymaj króciutko, po czym zrób krok')
-                active_step()
+                #print('Utrzymaj laser, przytrzymaj króciutko, po czym zrób krok')
+                ploter.active_step()
             case 2:
-                print('Włącz LASER i przytrzymaj chwilę dłużej, po czym zrób krok')
-                first_pixel()
+                #print('Włącz LASER i przytrzymaj chwilę dłużej, po czym zrób krok')
+                ploter.first_pixel()
             case _:
                 print(f"Nie ma takiego znaku: \"{mark}\"")
+        pbar.update(1)  # Aktualizuj o 1 krok
+
 except KeyboardInterrupt:
     print("\nEmergency shutdown!")
-    default_position()
-    safe_mode()
+    ploter.default_position()
+    ploter.safe_mode()
     sys.exit(0)
     
 except Exception as e:    
     print(f"\nNieoczekiwany błąd: {e}")
-    safe_mode()
+    ploter.safe_mode()
 
+# =================================    ASSERT    ================================
+
+pbar.close()
 #GPIO.cleanup()
