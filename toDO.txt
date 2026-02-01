@@ -1,10 +1,14 @@
-dodać liczenie czasu i liczenie czasu pozostałego i %
 dodać pwm i decyzję o mocy
+
+ZApisanie obrazu png do './images/'
+wykonywanie runPloter, ale z aktualizac  pozostałeogo czasu i % .
+
 dodać BIST:
   - Sprawdzić przed każdym drukiem czy działa każda krańcówka (żęby nic sie nie znalazło na drodze.)
+
 dodać flaskserwer:
   - włączanie pracy,
-  - wybieranie obrazu,
+  - wybieranie instrukcji,
   - zlecenie wykonania instrukcji,
   - podgląd półproduktu (tablicy: 0-1)
   - nadzór pracy: 
@@ -12,9 +16,11 @@ dodać flaskserwer:
     - pozostaly czas, 
     - kamera,
     - warningi i errory,
+
 przerobić wszytko na klasy.
 
 mniej pilne:
 Przerobić wszytko na C i wgrać na stm'a (całą reszta może być w pythonie):
   - odbiór instrukcji,
   - praca urządzenia,
+

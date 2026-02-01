@@ -156,6 +156,35 @@
             font-weight: bold;
         }
 
+        .instruction-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .instruction-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .instruction-item:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .instruction-item.selected {
+            background: var(--color-primary);
+            color: white;
+            font-weight: bold;
+        }
+
         .preview-section {
             margin-top: 20px;
             padding-top: 20px;
@@ -298,29 +327,8 @@
                 </div>
             </div>
         </div>
-
         <div id="statusMessage" class="status-message"></div>
-
         <div class="grid">
-            <!-- Lewy panel: Wybór obrazów -->
-            <div class="panel">
-                <h2>📁 Lista Obrazów</h2>
-                <div class="form-group">
-                    <label>Dostępne obrazy:</label>
-                    <div class="image-list" id="imageList">
-                        <p style="color: #94a3b8; text-align: center;">Ładowanie obrazów...</p>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Instrukcje:</label>
-                    <textarea id="instructions" placeholder="Wpisz instrukcje dla tego obrazu..."></textarea>
-                </div>
-
-                <button onclick="runPlotter()">▶️ Uruchom Ploter</button>
-            </div>
-
-            <!-- Prawy panel: Upload i podgląd -->
             <div class="panel">
                 <h2>📤 Wgraj Nowy Obraz</h2>
                 <div class="form-group">
@@ -328,7 +336,7 @@
                     <input type="file" id="fileInput" accept="image/*">
                 </div>
 
-                <button onclick="uploadImage()" style="width: 100%; margin-bottom: 15px;">Wgraj i podejrzyj</button>
+                <button onclick="uploadImage()">Wgraj i podejrzyj</button>
 
                 <div class="preview-section" id="previewSection" style="display: none;">
                     <h3 style="margin-bottom: 10px;">Podgląd:</h3>
@@ -338,45 +346,66 @@
                         <strong>Rozmiar:</strong> <span id="fileSize">--</span><br>
                         <strong>Wymiary:</strong> <span id="imageSize">--</span>
                     </p>
-                    <div class="form-group">
-                        <label>Tablica binarna (0 i -):</label>
-                        <div class="array-display" id="binaryArray"></div>
-                    </div>
-                    <button onclick="saveUploadedImage()" style="width: 100%;">💾 Zapisz obraz</button>
+                    <button onclick="saveUploadedImage()">💾 Zapisz obraz</button>
                 </div>
             </div>
+
+            <div class="panel">
+                <h2>📁 Lista Obrazów</h2>
+                <div class="form-group">
+                    <label>Dostępne obrazy:</label>
+                    <div class="image-list" id="ImageList">
+                        <p style="color: #94a3b8; text-align: center;">Ładowanie instrukcji...</p>
+                    </div>
+                </div>
+
+                <button onclick="makeInstruction()">▶️ Stwórz instrukcję</button>
+            </div>
+            <!-- Lewy panel: Wybór instrukcji -->
+            <div class="panel">
+                <h2>📁 Lista Instrukcji</h2>
+                <div class="form-group">
+                    <label>Dostępne instrukcje:</label>
+                    <div class="instruction-list" id="InstructionList">
+                        <p style="color: #94a3b8; text-align: center;">Ładowanie instrukcji...</p>
+                    </div>
+                </div>
+
+                <button onclick="runPlotter()">▶️ Uruchom Ploter</button>
+            </div>
+
         </div>
     </div>
 
     <script>
         const socket = io();
-        let selectedImage = null;
+        let selectedInstruction = null;
         let uploadedImageData = null;
 
         // Ładuj listę obrazów
-        function loadImages() {
-            fetch('/api/images')
+        function loadInstructions() {
+            fetch('/api/instructions')
                 .then(r => r.json())
                 .then(data => {
-                    const list = document.getElementById('imageList');
-                    if (data.images.length === 0) {
-                        list.innerHTML = '<p style="color: #94a3b8; text-align: center;">Brak obrazów</p>';
+                    const list = document.getElementById('InstructionList');
+                    if (data.instructions.length === 0) {
+                        list.innerHTML = '<p style="color: #94a3b8; text-align: center;">Brak instrukcji</p>';
                         return;
                     }
-                    list.innerHTML = data.images.map(img => 
-                        `<div class="image-item" onclick="selectImage('${img}')">${img}</div>`
+                    list.innerHTML = data.instructions.map(ins => 
+                        `<div class="instruction-item" onclick="selectInstruction('${ins}')">${ins}</div>`
                     ).join('');
                 });
         }
 
-        // Wybierz obraz
-        function selectImage(name) {
-            selectedImage = name;
-            document.querySelectorAll('.image-item').forEach(item => {
+        // Wybierz instrukcję
+        function selectInstruction(name) {
+            selectedInstruction = name;
+            document.querySelectorAll('.instruction-item').forEach(item => {
                 item.classList.remove('selected');
             });
             event.target.classList.add('selected');
-            showStatus(`Wybrany obraz: ${name}`, 'info');
+            showStatus(`Wybrana instrukcja: ${name}`, 'info');
         }
 
         // Upload pliku
@@ -393,7 +422,6 @@
                 img.onload = function() {
                     document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
                     document.getElementById('previewImage').src = event.target.result;
-                    
                     // Konwertuj na tablicę binarną
                     convertImageToArray(img);
                     document.getElementById('previewSection').style.display = 'block';
@@ -402,39 +430,6 @@
             };
             reader.readAsDataURL(file);
         });
-
-        // Konwertuj obraz na tablicę
-        function convertImageToArray(img) {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-
-            const imageData = ctx.getImageData(0, 0, img.width, img.height);
-            const data = imageData.data;
-            let binaryStr = '';
-
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                const brightness = (r + g + b) / 3;
-                binaryStr += brightness > 127 ? '-' : '0';
-            }
-
-            // Wyświetl pierwsze 500 znaków
-            const display = binaryStr.substring(0, 500);
-            document.getElementById('binaryArray').textContent = 
-                display.replace(/(.{50})/g, '$1\n');
-
-            uploadedImageData = {
-                name: document.getElementById('fileName').textContent,
-                binary: binaryStr,
-                width: img.width,
-                height: img.height
-            };
-        }
 
         // Wrzuć upload
         function uploadImage() {
@@ -459,7 +454,7 @@
             .then(data => {
                 if (data.success) {
                     showStatus('Obraz zapisany!', 'success');
-                    loadImages();
+                    loadInstructions();
                     document.getElementById('fileInput').value = '';
                     document.getElementById('previewSection').style.display = 'none';
                 } else {
@@ -470,20 +465,18 @@
 
         // Uruchom Ploter
         function runPlotter() {
-            if (!selectedImage) {
+            if (!selectedInstruction) {
                 showStatus('Wybierz obraz!', 'error');
                 return;
             }
 
-            const instructions = document.getElementById('instructions').value || 'Konwertuj na tablicę';
             document.getElementById('progressSection').style.display = 'block';
 
             fetch('/api/run-plotter', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    image: selectedImage,
-                    instructions: instructions
+                    instruction_filename: selectedInstruction,
                 })
             })
             .then(r => r.json())
@@ -520,9 +513,36 @@
             setTimeout(() => el.classList.remove('show'), 5000);
         }
 
+        function makeInstruction() {
+            if (!selectedImage) {
+                showStatus('Wybierz obraz!', 'error');
+                return;
+            }
+
+            document.getElementById('progressSection').style.display = 'block';
+
+            fetch('/api/make-instruction', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    instruction_filename: selectedImage,
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showStatus('Ploter uruchomiony!', 'success');
+                } else {
+                    showStatus('Błąd: ' + data.error, 'error');
+                }
+            });
+        }
+
+
+
         // Załaduj obrazy na start
-        loadImages();
-        setInterval(loadImages, 5000);
+        loadInstructions();
+        setInterval(loadInstructions, 5000);
     </script>
 </body>
 </html>
