@@ -355,7 +355,7 @@
                 <div class="form-group">
                     <label>Dostępne obrazy:</label>
                     <div class="image-list" id="ImageList">
-                        <p style="color: #94a3b8; text-align: center;">Ładowanie instrukcji...</p>
+                        <p style="color: #94a3b8; text-align: center;">Ładowanie obrazów...</p>
                     </div>
                 </div>
 
@@ -382,12 +382,40 @@
         let selectedInstruction = null;
         let uploadedImageData = null;
 
+
         // Ładuj listę obrazów
+        function loadImages() {
+            fetch('/api/images')
+                .then(r => r.json())
+                .then(data => {
+                    const list = document.getElementById('ImageList')
+                    if (data.instructions.length === 0) {
+                        list.innerHTML = '<p style="color: #94a3b8; text-align: center;">Brak obrazów</p>';
+                        return;
+                    }
+                    list.innerHTML = data.instructions.map(ins => 
+                        `<div class="image-item" onclick="selectImages('${ins}')">${ins}</div>`
+                    ).join('');
+                });
+        }
+
+        // Wybierz obraz 
+        function selectImages(name) {
+            selectedImages = name;
+            document.querySelectorAll('.image-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            showStatus(`Wybrany obraz: ${name}`, 'info');
+        }
+
+
+        // Ładuj listę instrukcji
         function loadInstructions() {
             fetch('/api/instructions')
                 .then(r => r.json())
                 .then(data => {
-                    const list = document.getElementById('InstructionList');
+                    const list = document.getElementById('InstructionList')
                     if (data.instructions.length === 0) {
                         list.innerHTML = '<p style="color: #94a3b8; text-align: center;">Brak instrukcji</p>';
                         return;
@@ -423,8 +451,6 @@
                     document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
                     document.getElementById('previewImage').src = event.target.result;
                     // Konwertuj na tablicę binarną
-                    convertImageToArray(img);
-                    document.getElementById('previewSection').style.display = 'block';
                 };
                 img.src = event.target.result;
             };
@@ -438,7 +464,7 @@
                 showStatus('Wybierz plik!', 'error');
                 return;
             }
-            showStatus('Przetwarzam obraz...', 'info');
+            showStatus('Wgrywam obraz...', 'info');
         }
 
         // Zapisz wrzucony obraz
@@ -454,9 +480,6 @@
             .then(data => {
                 if (data.success) {
                     showStatus('Obraz zapisany!', 'success');
-                    loadInstructions();
-                    document.getElementById('fileInput').value = '';
-                    document.getElementById('previewSection').style.display = 'none';
                 } else {
                     showStatus('Błąd: ' + data.error, 'error');
                 }
@@ -542,6 +565,7 @@
 
         // Załaduj obrazy na start
         loadInstructions();
+        loadImages();
         setInterval(loadInstructions, 5000);
     </script>
 </body>

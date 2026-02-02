@@ -24,6 +24,13 @@ os.makedirs(INSTRUCTION_FOLDER, exist_ok=True)
 def index():
     return render_template('index.html')
 
+@app.route('/api/images')
+def get_images():
+    """Zwróć listę dostępnych obrazów"""
+    images = [f for f in os.listdir(IMAGES_FOLDER) if f.endswith(('.png'))]
+    app.logger.info(f'Obrazy ===> {images}')
+    return jsonify({'instructions': images})
+
 @app.route('/api/instructions')
 def get_instructions():
     """Zwróć listę dostępnych obrazów"""
@@ -36,15 +43,18 @@ def save_image():
     """Zapisz wrzucony obraz"""
     data = request.json
     app.logger.info(f'data ===========> {data}')
-    #try:
-    #    # Zdekoduj base64 z binary string
-    #    name = data['name']
-    #    binary = data['binary']
-    #    width = data['width']
-    #    height = data['height']
-    #    imagepath = os.path.join(IMAGES_FOLDER, name.replace('.', '_') + '.png')
-    #    print(imagepath)
-    return jsonify({'success': True})
+    try:
+        # Zdekoduj base64 z binary string
+        name = data['name']
+        binary = data['binary']
+        width = data['width']
+        height = data['height']
+        imagepath = os.path.join(IMAGES_FOLDER, name.replace('.', '_') + '.png')
+        print(imagepath)
+        return jsonify({'success': True})
+    except Exception as e:
+        print(e)
+        return jsonify({'success': False})
 
 @app.route('/api/run-plotter', methods=['POST'])
 def run_plotter():
