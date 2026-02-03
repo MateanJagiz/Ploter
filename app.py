@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
+from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit
 from tqdm import tqdm
 import threading
@@ -38,40 +39,78 @@ def get_instructions():
     app.logger.info(f'Instrukcje ===> {instructions}')
     return jsonify({'instructions': instructions})
 
-@app.route('/api/save-image', methods=['POST'])
+# Ustawienie folderu zapisu
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'images')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Tworzy folder jeśli nie istnieje
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'png'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/api/save_image', methods=['POST'])
 def save_image():
-    """Zapisz wrzucony obraz"""
-    data = request.json
-    app.logger.info(f'data ===========> {data}')
-    try:
-        # Zdekoduj base64 z binary string
-        name = data['name']
-        binary = data['binary']
-        width = data['width']
-        height = data['height']
-        imagepath = os.path.join(IMAGES_FOLDER, name.replace('.', '_') + '.png')
-        print(imagepath)
-        return jsonify({'success': True})
-    except Exception as e:
-        print(e)
-        return jsonify({'success': False})
+    # Sprawdzenie czy plik jest w żądaniu
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'Brak pliku w żądaniu'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'Nie wybrano pliku'}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        images = [f for f in os.listdir(IMAGES_FOLDER) if f.endswith(('.png'))]
+
+        if filename in images:
+            return jsonify({'success': False, 'message': f'Plik o tej nazwie już istnieje'}), 500
+
+        try:
+            file.save(save_path)
+            # Zwracamy sukces (można też zwrócić np. URL do obrazka)
+            return jsonify({
+                'success': True,
+                'message': f'Zapisano: {filename}',
+                'filename': filename
+            })
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'Błąd zapisu: {str(e)}'}), 500
+
+    return jsonify({'success': False, 'message': 'Niedozwolony typ pliku'}), 400
 
 @app.route('/api/run-plotter', methods=['POST'])
 def run_plotter():
     """Uruchom Ploter z obrazem"""
     data = request.json
     app.logger.info(f'data : {data}')
-    instruction = data['instruction_filename']
-    return jsonify({'success': True})
+    instruction_name = data['instruction_filename']
+    app.logger.info(f'Image name : {imagename}')
+    try:
+        os.system(f'python ./src/plot.py instructions/{instruction_name}')
+        return jsonify({'success': True})
+        socketio.emit('done', {
+            'result': 'Ok',
+        })
+    except Exception as e:
+        socketio.emit('done', {
+            'result': f'Błąd: {str(e)}',
+        })
 
 @app.route('/api/make-instruction', methods=['POST'])
-def make_instruction(image_data):
+def make_instruction():
     """Przetwórz obraz z tqdm"""
     data = request.json
     app.logger.info(f'data : {data}')
-    image_path = data['image_path']
+    imagename = data['image_filename']
+    app.logger.info(f'Image name : {imagename}')
     try:
-        os.system(f'./src/get_instructon.py {image_path}')
+        os.system(f'python ./src/get_instructon.py images/{imagename}')
+        return jsonify({'success': True})
         socketio.emit('done', {
             'result': 'Ok',
         })

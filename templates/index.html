@@ -336,18 +336,7 @@
                     <input type="file" id="fileInput" accept="image/*">
                 </div>
 
-                <button onclick="uploadImage()">Wgraj i podejrzyj</button>
-
-                <div class="preview-section" id="previewSection" style="display: none;">
-                    <h3 style="margin-bottom: 10px;">Podgląd:</h3>
-                    <img id="previewImage" class="preview-image">
-                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">
-                        <strong>Nazwa:</strong> <span id="fileName">--</span><br>
-                        <strong>Rozmiar:</strong> <span id="fileSize">--</span><br>
-                        <strong>Wymiary:</strong> <span id="imageSize">--</span>
-                    </p>
-                    <button onclick="saveUploadedImage()">💾 Zapisz obraz</button>
-                </div>
+                <button onclick="saveUploadedImage()">💾 Zapisz obraz</button>
             </div>
 
             <div class="panel">
@@ -401,7 +390,7 @@
 
         // Wybierz obraz 
         function selectImages(name) {
-            selectedImages = name;
+            selectedImage = name;
             document.querySelectorAll('.image-item').forEach(item => {
                 item.classList.remove('selected');
             });
@@ -436,53 +425,37 @@
             showStatus(`Wybrana instrukcja: ${name}`, 'info');
         }
 
-        // Upload pliku
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
-                    document.getElementById('previewImage').src = event.target.result;
-                    // Konwertuj na tablicę binarną
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // Wrzuć upload
-        function uploadImage() {
-            const file = document.getElementById('fileInput').files[0];
+        function saveUploadedImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+        
+            // Walidacja: czy wybrano plik?
             if (!file) {
-                showStatus('Wybierz plik!', 'error');
+                alert("Proszę najpierw wybrać plik!");
                 return;
             }
-            showStatus('Wgrywam obraz...', 'info');
-        }
-
-        // Zapisz wrzucony obraz
-        function saveUploadedImage() {
-            if (!uploadedImageData) return;
-            
-            fetch('/api/save-image', {
+        
+            const formData = new FormData();
+            formData.append('file', file);
+        
+            // Wysyłanie do Flaska
+            fetch('/api/save_image', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(uploadedImageData)
+                body: formData
             })
-            .then(r => r.json())
+            .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showStatus('Obraz zapisany!', 'success');
+                    alert("✅ Sukces: " + data.message);
+                    // Opcjonalnie wyczyść pole po sukcesie
+                    fileInput.value = ''; 
                 } else {
-                    showStatus('Błąd: ' + data.error, 'error');
+                    alert("❌ Błąd: " + data.message);
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("❌ Wystąpił błąd połączenia z serwerem.");
             });
         }
 
@@ -542,19 +515,19 @@
                 return;
             }
 
-            document.getElementById('progressSection').style.display = 'block';
+            //document.getElementById('progressSection').style.display = 'block';
 
             fetch('/api/make-instruction', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    instruction_filename: selectedImage,
+                    image_filename: selectedImage,
                 })
             })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    showStatus('Ploter uruchomiony!', 'success');
+                    showStatus('Instrukcja została stworzona!', 'success');
                 } else {
                     showStatus('Błąd: ' + data.error, 'error');
                 }
@@ -566,7 +539,8 @@
         // Załaduj obrazy na start
         loadInstructions();
         loadImages();
-        setInterval(loadInstructions, 5000);
+        setInterval(loadInstructions, 3000);
+        setInterval(loadImages, 3000);
     </script>
 </body>
 </html>

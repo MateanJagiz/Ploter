@@ -3,7 +3,6 @@ import sys
 import json
 from pathlib import Path
 from module.instruction import make_instruction as make
-from module.utils import *
 
 def main():
     parser = argparse.ArgumentParser(description="Parse image to instructions")
