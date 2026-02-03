@@ -89,9 +89,9 @@ def run_plotter():
     data = request.json
     app.logger.info(f'data : {data}')
     instruction_name = data['instruction_filename']
-    app.logger.info(f'Image name : {imagename}')
+    app.logger.info(f'Image name : {instruction_name}')
     try:
-        os.system(f'python ./src/plot.py instructions/{instruction_name}')
+        os.system(f'python src/plot.py instructions/{instruction_name}')
         return jsonify({'success': True})
         socketio.emit('done', {
             'result': 'Ok',

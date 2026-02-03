@@ -3,7 +3,7 @@ from time import sleep
 import configparser
 
 config = configparser.ConfigParser()
-config.read('config.ini')  
+config.read('src/config.ini')  
 
 GPIO.cleanup()
 sleep(0.1)
