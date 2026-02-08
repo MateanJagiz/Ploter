@@ -1,4 +1,5 @@
-.pyc
+*.pyc
 venv/
-.json
-.png
+*.json
+*.png
+__pycache__/
