@@ -12,7 +12,7 @@ def make_instruction(path2image):
     print(' R = głowica jedzie w prawo')
     print(' L = głowica jedzie w lewo')
     print(' K = koniec pliku')
-    print(instruction)
+    #print(instruction)
     return instruction
 
 def picture_to_array(image):
@@ -33,7 +33,6 @@ def picture_to_array(image):
             else:
                 linia.append(1)
         binary_array.append(linia)
-    print('ilość lini = ', len(binary_array))
     return binary_array
 
 def print_2D_array(array):
@@ -55,7 +54,6 @@ def prepare_instruction(binary_array):
     print("4. dodanie wszedzie znacznika następnej linii")
     instruction = add_next_line_mark(instruction)
     print("5. Usuwanie zer pomiedzy pustymi liniami")
-    print(remove_0_between_empty_lines(instruction))
     instruction = remove_0_between_empty_lines(instruction)
     print("6. Usuniecie zbędnej końcówki przed znakiem końca pracy")
     while instruction[-2] == 0 or instruction[-2] == 'N':
@@ -99,14 +97,12 @@ def remove_0_between_empty_lines(instruction):
     while NN > 0:
         NN = 0
         N_after_N_list = find_multiple_n_starts(instruction)
-        print(N_after_N_list)
         for i in N_after_N_list:
             try:
                 if instruction[i[0]-1] == 0 and instruction[i[0]+i[1]+1] == 0:
                     instruction.pop(i[0]+i[1]+1)
                     instruction.pop(i[0]-1)
                     NN = NN + 1
-                    print(NN)
             except Exception as e:
                 print(e)
     return instruction
