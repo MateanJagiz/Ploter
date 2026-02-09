@@ -10,7 +10,7 @@ from module.utils import *
 # ==================================  ARRANGE  ==================================
 
 ploter = Ploter()
-ploter.default_position()
+ploter.start_default_position()
 
 instruction = []
 data = {}
@@ -63,7 +63,7 @@ try:
 
 except KeyboardInterrupt:
     print("\nEmergency shutdown!")
-    ploter.default_position()
+    ploter.end_default_position()
     ploter.safe_mode()
     sys.exit(0)
     

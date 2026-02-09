@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 from time import sleep
 import configparser
+import random
 
 config = configparser.ConfigParser()
 config.read('src/config.ini')  
@@ -98,7 +99,7 @@ class Ploter:
         GPIO.output(self.motor.ENA_TRO, GPIO.HIGH)
         self.laser.off()
     
-    def default_position(self):
+    def start_default_position(self):
         self.laser.off()
         GPIO.output(self.motor.ENA_TRO, GPIO.LOW)
         GPIO.output(self.motor.DIR_TRO, GPIO.HIGH)
@@ -106,6 +107,25 @@ class Ploter:
             self.motor.step_troll()
         GPIO.output(self.motor.DIR_TRO, GPIO.LOW)
         for i in range(50):
+            self.motor.step_troll()
+    
+        GPIO.output(self.motor.ENA_ARM, GPIO.LOW)
+        GPIO.output(self.motor.DIR_ARM, GPIO.LOW)
+        while self.motor.limit_switch_check() == False:
+            self.motor.step_arm()
+        GPIO.output(self.motor.DIR_ARM, GPIO.HIGH)
+        for i in range(50):
+            self.motor.step_arm()
+     
+    def end_default_position(self):
+        self.laser.off()
+        GPIO.output(self.motor.ENA_TRO, GPIO.LOW)
+        GPIO.output(self.motor.DIR_TRO, GPIO.HIGH)
+        while self.motor.limit_switch_check() == False:
+            self.motor.step_troll()
+        GPIO.output(self.motor.DIR_TRO, GPIO.LOW)
+        random_end_troll_position = random.randint(0, 200)
+        for i in range(random_end_troll_position):
             self.motor.step_troll()
     
         GPIO.output(self.motor.ENA_ARM, GPIO.LOW)

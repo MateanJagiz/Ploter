@@ -7,13 +7,20 @@ from module.utils import *
 
 # ==================================  ARRANGE  ==================================
 
-default_position()
-laser_on()
-sleep(5)
-laser_off()
-for i in range(1000):
-    empty_step()
-laser_on()
-sleep(5)
-laser_off()
+ploter = Ploter()
+ploter.end_default_position()
+
+for i in range(20):
+    ploter.end_default_position()
+    sleep(0.5)
+
+#
+#laser_on()
+#sleep(5)
+#laser_off()
+#for i in range(1000):
+#    empty_step()
+#laser_on()
+#sleep(5)
+#laser_off()
 
