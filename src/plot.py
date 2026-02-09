@@ -4,7 +4,6 @@ import json
 import time
 import argparse
 from tqdm import tqdm
-from module.instruction import make_instruction as make
 from module.utils import *
 
 # ==================================  ARRANGE  ==================================

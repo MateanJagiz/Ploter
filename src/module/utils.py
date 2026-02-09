@@ -150,7 +150,7 @@ class Ploter:
     
     def end(self): # powrót do pozycji defaultowej.
         self.laser.off()
-        self.default_position()
+        self.end_default_position()
         self.safe_mode()
     
     def empty_step(self): # wyłącza laser i szybko omija ten punkt
