@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Dane z serwera:</h1>
+    <div id="data">Czekam...</div>
+
+    <script>
+        const socket = io();
+
+        socket.on("update_data", function(data) {
+            document.getElementById("data").innerText = data.value;
+        });
+    </script>
+</body>
+</html>
+
