@@ -90,8 +90,23 @@ def run_plotter():
     app.logger.info(f'data : {data}')
     instruction_name = data['instruction_filename']
     app.logger.info(f'Image name : {instruction_name}')
+
+    data = {"value": procent}
+    print("Wysyłam:", data)
+    socketio.emit("update_data", data)
+    socketio.sleep(1)
+
+    #socketio.start_background_task(external_app_logic)
+
+
+
     try:
         os.system(f'python src/plot.py instructions/{instruction_name}')
+         
+        data = {"value": procent}
+        print("Wysyłam:", data)
+        socketio.emit("update_data", data)
+        
         return jsonify({'success': True})
         socketio.emit('done', {
             'result': 'Ok',
