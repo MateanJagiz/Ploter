@@ -1,4 +1,57 @@
-import RPi.GPIO as GPIO
+from typing import Optional
+try:
+    import RPi.GPIO as GPIO
+    raspberry_flag = True
+except ImportError:
+    raspberry_flag = False
+    class MockGPIO:
+        BCM = 11
+        OUT = 0
+        IN = 1
+        BOARD = 10
+        PUD_DOWN = 0
+        PUD_UP = 1
+        PUD_OFF = -1
+        HIGH = 1
+        LOW = 1
+
+
+        def setwarnings(self, mode):
+            #print(f"[MOCK] setmode({mode})")
+            pass
+
+        def setmode(self, mode):
+            pass
+            #print(f"[MOCK] setmode({mode})")
+
+        def setup(
+            self,
+            channel: int,
+            direction: int,
+            pull_up_down: Optional[int] = None,
+            initial: Optional[bool] = None,
+        ) -> None:
+            pass
+            #print(
+            #f"[MOCK] setup(channel={channel}, direction={direction}, "
+            #f"pull_up_down={pull_up_down}, initial={initial})"
+        #)
+
+        def output(self, pin, value):
+            pass
+            #print(f"[MOCK] output(pin={pin}, value={value})")
+
+        def input(self, pin):
+            pass
+            #print(f"[MOCK] output(pin={pin})")
+
+        def cleanup(self):
+            pass
+            #print("[MOCK] cleanup()")
+
+    GPIO = MockGPIO()
+
+
 from time import sleep
 import configparser
 import random
@@ -61,13 +114,15 @@ class Motor:
             sleep(self.time_step_trollay)
 
     def step_arm(self):
-        for i in range(self.arm_steps_on_move):
-            GPIO.output(self.PUL_ARM, GPIO.HIGH)
-            sleep(self.time_step_arm)
-            GPIO.output(self.PUL_ARM, GPIO.LOW)
-            sleep(self.time_step_arm)
-
+        if raspberry_flag == True:
+            if self.limit_switch_check() == False:
+                for i in range(self.arm_steps_on_move):
+                    GPIO.output(self.PUL_ARM, GPIO.HIGH)
+                    sleep(self.time_step_arm)
+                    GPIO.output(self.PUL_ARM, GPIO.LOW)
+                    sleep(self.time_step_arm)
 class Laser:
+
     def __init__(self) -> None:
         self.time_on = 0
         self.time_off = 0
@@ -103,16 +158,18 @@ class Ploter:
         self.laser.off()
         GPIO.output(self.motor.ENA_TRO, GPIO.LOW)
         GPIO.output(self.motor.DIR_TRO, GPIO.HIGH)
-        while self.motor.limit_switch_check() == False:
-            self.motor.step_troll()
+        if raspberry_flag == True:
+            while self.motor.limit_switch_check() == False:
+                self.motor.step_troll()
         GPIO.output(self.motor.DIR_TRO, GPIO.LOW)
         for i in range(50):
             self.motor.step_troll()
     
         GPIO.output(self.motor.ENA_ARM, GPIO.LOW)
         GPIO.output(self.motor.DIR_ARM, GPIO.LOW)
-        while self.motor.limit_switch_check() == False:
-            self.motor.step_arm()
+        if raspberry_flag == True:
+            while self.motor.limit_switch_check() == False:
+                self.motor.step_arm()
         GPIO.output(self.motor.DIR_ARM, GPIO.HIGH)
         for i in range(50):
             self.motor.step_arm()
@@ -121,8 +178,9 @@ class Ploter:
         self.laser.off()
         GPIO.output(self.motor.ENA_TRO, GPIO.LOW)
         GPIO.output(self.motor.DIR_TRO, GPIO.HIGH)
-        while self.motor.limit_switch_check() == False:
-            self.motor.step_troll()
+        if raspberry_flag == True:
+            while self.motor.limit_switch_check() == False:
+                self.motor.step_troll()
         GPIO.output(self.motor.DIR_TRO, GPIO.LOW)
         random_end_troll_position = random.randint(0, 200)
         for i in range(random_end_troll_position):
@@ -130,8 +188,9 @@ class Ploter:
     
         GPIO.output(self.motor.ENA_ARM, GPIO.LOW)
         GPIO.output(self.motor.DIR_ARM, GPIO.LOW)
-        while self.motor.limit_switch_check() == False:
-            self.motor.step_arm()
+        if raspberry_flag == True:
+            while self.motor.limit_switch_check() == False:
+                self.motor.step_arm()
         GPIO.output(self.motor.DIR_ARM, GPIO.HIGH)
         for i in range(50):
             self.motor.step_arm()
@@ -139,8 +198,9 @@ class Ploter:
     def new_line(self): # silnik wózka robi jeden krok ruch postępujący (np. 2 kroki)
         GPIO.output(self.motor.ENA_TRO, GPIO.LOW)
         GPIO.output(self.motor.DIR_TRO, GPIO.LOW)
-        if self.motor.limit_switch_check() == False:
-            self.motor.step_troll()
+        if raspberry_flag == True:
+            if self.motor.limit_switch_check() == False:
+                self.motor.step_troll()
     
     def cd_left(self): # silnik ramienia zmienia kierunek na lewo
         GPIO.output(self.motor.DIR_ARM, GPIO.HIGH)
