@@ -1,7 +1,5 @@
-import RPi.GPIO as GPIO
 import sys
 import json
-import time
 import argparse
 from tqdm import tqdm
 from module.utils import *
@@ -11,7 +9,7 @@ from module.utils import *
 ploter = Ploter()
 ploter.start_default_position()
 
-instruction = []
+instruction_data = []
 data = {}
 try:
     parser = argparse.ArgumentParser(description="Opis")
@@ -24,53 +22,58 @@ except Exception as e:
     print("Problem to get instruction")
     print(e)
 
-instruction = data["steps"]
+instruction_data = data["steps"]
 
-pbar = tqdm(total=len(instruction), desc="Postęp")  # Szacunkowe total, dostosuj dynamicznie
+pbar = tqdm(total=len(instruction_data), desc="Postęp")  # Szacunkowe total, dostosuj dynamicznie
 
 
 
 # ==================================    ACT    ==================================
 
-try:
-    for mark in instruction:
-        match mark:
-            case 'N':
-                #print('Nowa linia')
-                ploter.new_line()
-            case 'L':
-                #print('W lewo')
-                ploter.cd_left()
-            case 'R':
-                #print('W prawo')
-                ploter.cd_right()
-            case 'K':
-                #print('Koniec!')
-                ploter.end()
-            case 0:
-                #print('Wyłącz laser, Szybko omiń')
-                ploter.empty_step()
-            case 1:
-                #print('Utrzymaj laser, przytrzymaj króciutko, po czym zrób krok')
-                ploter.active_step()
-            case 2:
-                #print('Włącz LASER i przytrzymaj chwilę dłużej, po czym zrób krok')
-                ploter.first_pixel()
-            case _:
-                print(f"Nie ma takiego znaku: \"{mark}\"")
-        pbar.update(1)  # Aktualizuj o 1 krok
-
-except KeyboardInterrupt:
-    print("\nEmergency shutdown!")
-    ploter.end_default_position()
-    ploter.safe_mode()
-    sys.exit(0)
+def start_plot(instruction):
+    try:
+        for mark in instruction:
+            match mark:
+                case 'N':
+                    #print('Nowa linia')
+                    ploter.new_line()
+                case 'L':
+                    #print('W lewo')
+                    ploter.cd_left()
+                case 'R':
+                    #print('W prawo')
+                    ploter.cd_right()
+                case 'K':
+                    #print('Koniec!')
+                    ploter.end()
+                case 0:
+                    #print('Wyłącz laser, Szybko omiń')
+                    ploter.empty_step()
+                case 1:
+                    #print('Utrzymaj laser, przytrzymaj króciutko, po czym zrób krok')
+                    ploter.active_step()
+                case 2:
+                    #print('Włącz LASER i przytrzymaj chwilę dłużej, po czym zrób krok')
+                    ploter.first_pixel()
+                case _:
+                    print(f"Nie ma takiego znaku: \"{mark}\"")
+            pbar.update(1)  # Aktualizuj o 1 krok
     
-except Exception as e:    
-    print(f"\nNieoczekiwany błąd: {e}")
-    ploter.safe_mode()
+    except KeyboardInterrupt:
+        print("\nEmergency shutdown!")
+        ploter.end_default_position()
+        ploter.safe_mode()
+        sys.exit(0)
+        
+    except Exception as e:    
+        print(f"\nNieoczekiwany błąd: {e}")
+        ploter.safe_mode()
 
+    pbar.close()
 # =================================    ASSERT    ================================
 
-pbar.close()
 #GPIO.cleanup()
+
+
+if __name__ == "__main__":
+    start_plot(instruction_data)
