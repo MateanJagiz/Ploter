@@ -1,13 +1,8 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
-from flask_socketio import SocketIO, emit
-from tqdm import tqdm
-import threading
+from flask_socketio import SocketIO
 import os
-import json
-from PIL import Image
-import numpy as np
-import time
+from src.plot import Plot
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ploter-secret'
@@ -69,7 +64,7 @@ def save_image():
 
         if filename in images:
             return jsonify({'success': False, 'message': f'Plik o tej nazwie już istnieje'}), 500
-
+            
         try:
             file.save(save_path)
             # Zwracamy sukces (można też zwrócić np. URL do obrazka)
@@ -90,24 +85,14 @@ def run_plotter():
     app.logger.info(f'data : {data}')
     instruction_name = data['instruction_filename']
     app.logger.info(f'Image name : {instruction_name}')
-
-    data = {"value": procent}
-    print("Wysyłam:", data)
-    socketio.emit("update_data", data)
-    socketio.sleep(1)
-
-    #socketio.start_background_task(external_app_logic)
-
-
-
     try:
-        os.system(f'python src/plot.py instructions/{instruction_name}')
-         
-        data = {"value": procent}
-        print("Wysyłam:", data)
-        socketio.emit("update_data", data)
-        
-        return jsonify({'success': True})
+        plot = Plot()
+        for i in plot.server_plot(instruction_name):
+            app.logger.info(f'{i}')
+            socketio.emit('progress', {'percent': i})
+        #data = {"value": procent}
+        #print("Wysyłam:", data)
+        #socketio.emit("update_data", data)
         socketio.emit('done', {
             'result': 'Ok',
         })
@@ -115,8 +100,10 @@ def run_plotter():
         socketio.emit('done', {
             'result': f'Błąd: {str(e)}',
         })
+    return jsonify({'success': True})
 
 @app.route('/api/make-instruction', methods=['POST'])
+
 def make_instruction():
     """Przetwórz obraz z tqdm"""
     data = request.json
@@ -125,7 +112,6 @@ def make_instruction():
     app.logger.info(f'Image name : {imagename}')
     try:
         os.system(f'python ./src/get_instructon.py images/{imagename}')
-        return jsonify({'success': True})
         socketio.emit('done', {
             'result': 'Ok',
         })
@@ -133,6 +119,7 @@ def make_instruction():
         socketio.emit('done', {
             'result': f'Błąd: {str(e)}',
         })
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)
