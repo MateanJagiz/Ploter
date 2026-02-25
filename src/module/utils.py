@@ -148,6 +148,7 @@ class Ploter:
     def __init__(self) -> None:
         self.laser = Laser()
         self.motor = Motor()
+        self.stop_after_line_end_time = config.getfloat('device', 'stop_after_line_end_time')
 
     def safe_mode(self):
         GPIO.output(self.motor.ENA_ARM, GPIO.HIGH)
@@ -225,4 +226,5 @@ class Ploter:
         self.motor.step_arm()
         self.laser.on()
         sleep(self.motor.time_wait_1_active_pixel)
-
+    def stop_after_line_end(self):
+        sleep(self.stop_after_line_end_time)
