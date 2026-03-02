@@ -1,6 +1,7 @@
+import time
+
 from PIL import Image
 import numpy as np
-import configparser
 
 def make_instruction(path2image):
     img = Image.open(path2image).convert("RGB")
@@ -58,7 +59,7 @@ def prepare_instruction(binary_array):
     print("6. Usuniecie zbędnej końcówki przed znakiem końca pracy")
     while instruction[-2] == 0 or instruction[-2] == 'N':
         instruction.pop(-2)
-    print("8. Dodanie znaku dluzszego dzialania przy starcie linii")
+    print("7. Dodanie znaku dluzszego dzialania przy starcie linii")
     for i, mark in enumerate(instruction):
         if i == 0 or mark == 'K':
             pass
@@ -68,8 +69,30 @@ def prepare_instruction(binary_array):
                     pass
                 else:
                     instruction[i] = 2
+    print("8. Dodanie znaku 'S' Stop po końcu linii, celem stabilizacji drgań")
+    print(instruction)
+    instruction = add_stop_mark(instruction)
+    print(instruction)
     return instruction
 
+def add_stop_mark(seq):
+    instruction = seq
+    ins_index  = 0
+    for i, mark in enumerate(seq):
+        print(mark)
+        i += 1
+        try:
+            if  seq[i-1] != "N" and seq[i] == "N":
+                instruction.insert(ins_index, "S")
+                print(instruction)
+        except IndexError:
+            print('index error')
+            pass
+        except Exception as e:
+            print(f'exception occured as {e}')
+        ins_index += 1
+        time.sleep(0.1)
+        #print(i)
 
 def set_dir(binary_array):
     instruction = []

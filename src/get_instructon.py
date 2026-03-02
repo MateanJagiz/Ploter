@@ -1,6 +1,6 @@
-import argparse
 import sys
 import json
+import argparse
 from pathlib import Path
 from module.instruction import make_instruction as make
 
@@ -28,7 +28,7 @@ def main():
     output_dir.mkdir(exist_ok=True)  # Create if missing
     
     instruction_file = output_dir / f'{filename}.ins'
-    
+
     json_data = {"steps": instruction}
     try:
         with open(instruction_file.with_suffix('.json'), 'w') as f:

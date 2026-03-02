@@ -3,7 +3,7 @@ import argparse
 import configparser
 
 config = configparser.ConfigParser()
-config.read('config.ini')  
+config.read('src/config.ini')  
 
 time_step_arm = config.getfloat('device', 'time_step_arm')
 time_step_trollay = config.getfloat('device', 'time_step_trollay')
