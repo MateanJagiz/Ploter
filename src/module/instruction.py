@@ -69,10 +69,10 @@ def prepare_instruction(binary_array):
                     pass
                 else:
                     instruction[i] = 2
-    print("8. Dodanie znaku 'S' Stop po końcu linii, celem stabilizacji drgań")
-    print(instruction)
-    instruction = add_stop_mark(instruction)
-    print(instruction)
+    #print("8. Dodanie znaku 'S' Stop po końcu linii, celem stabilizacji drgań")
+    #print(instruction)
+    #instruction = add_stop_mark(instruction)
+    #print(instruction)
     return instruction
 
 def add_stop_mark(seq):

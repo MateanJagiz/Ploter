@@ -2,7 +2,8 @@ from typing import Optional
 try:
     import RPi.GPIO as GPIO
     raspberry_flag = True
-except ImportError:
+#except ImportError:
+except:
     raspberry_flag = False
     class MockGPIO:
         BCM = 11
@@ -231,14 +232,14 @@ class Ploter:
     def stop_after_line_end(self):
         sleep(self.stop_after_line_end_time)
 
-class Power()
+class Power():
     def __init__(self) -> None:
         self.pin = power_pin
         GPIO.setup(self.pin, GPIO.OUT)
 
     def on():
-        GPIO.output(self., GPIO.LOW)
+        GPIO.output(self.pin, GPIO.LOW)
 
-    def off()
-        GPIO.output(self., GPIO.HIGH)
+    def off():
+        GPIO.output(self.pin, GPIO.HIGH)
 
