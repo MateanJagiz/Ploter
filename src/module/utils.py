@@ -69,6 +69,8 @@ limit_switch_ARM_end    = 6
 limit_switch_bed_begin  = 5
 limit_switch_bed_end    = 19
 
+power_pin = 18
+
 
 
 class Motor:
@@ -228,3 +230,15 @@ class Ploter:
         sleep(self.motor.time_wait_1_active_pixel)
     def stop_after_line_end(self):
         sleep(self.stop_after_line_end_time)
+
+class Power()
+    def __init__(self) -> None:
+        self.pin = power_pin
+        GPIO.setup(self.pin, GPIO.OUT)
+
+    def on():
+        GPIO.output(self., GPIO.LOW)
+
+    def off()
+        GPIO.output(self., GPIO.HIGH)
+
